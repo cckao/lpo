@@ -101,7 +101,7 @@ std::vector< Proposals > proposeFromImage1( LPO & that, const list & img, int w,
 
     // Make Image8u
     Image8u img8u( w, h, c );
-    pylistToArray( img, w, h, c, img8u.data() );
+    pylistToArray( img, img8u.data() );
 
     // Calculate proposals
     return that.propose( *geodesicKMeans( img8u, detector,apprx_N, 2 ) );
