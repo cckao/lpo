@@ -29,6 +29,9 @@
 #include "proposals/proposal.h"
 #include "crf/loss.h"
 #include "proposals/lpo.h"
+#include "contour/structuredforest.h"
+#include "contour/directedsobel.h"
+#include "imgproc/image.h"
 #include "lpo.h"
 #include "util.h"
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
@@ -88,6 +91,20 @@ std::vector< std::vector< Proposals > > proposeMany4( const T & that, const std:
 	for( int i=0; i<ios.size(); i++ )
 		r[i] = makeProp( that.propose( *(ios[i]), min_iou, -1, box_nms ) );
 	return r;
+}
+template<typename B_DET>
+std::vector< Proposals > proposeFromImage1( LPO & that, const list & img, int w, int h, int c, const B_DET & detector, int apprx_N ) {
+    // Check image size
+    if( w * h * c != len( img ) ) {
+        return std::vector< Proposals >();
+    }
+
+    // Make Image8u
+    Image8u img8u( w, h, c );
+    pylistToArray( img, w, h, c, img8u.data() );
+
+    // Calculate proposals
+    return that.propose( *geodesicKMeans( img8u, detector,apprx_N, 2 ) );
 }
 
 /*********************************/
@@ -184,6 +201,9 @@ void defineProposals() {
 	.def("propose",&proposeMany2<LPO>)
 	.def("propose",&proposeMany3<LPO>)
 	.def("propose",&proposeMany4<LPO>)
+	.def("propose",&proposeFromImage1<BoundaryDetector>)
+	.def("propose",&proposeFromImage1<StructuredForest>)
+	.def("propose",&proposeFromImage1<DirectedSobel>)
 	.def("load",static_cast<void (LPO::*)(const std::string &)>(&LPO::load))
 	.def("save",static_cast<void (LPO::*)(const std::string &) const>(&LPO::save))
 	.add_property("nModels",&LPO::nModels)

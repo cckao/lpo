@@ -134,3 +134,10 @@ std::vector<T> to_vector( const list & l ) {
 }
 
 void defineUtil();
+
+template<typename T>
+void pylistToArray( const list & l, T * data ) {
+    for( int n = 0; n < len( l ); ++n ) {
+        data[n] = extract<T>( l[n] );
+    }
+}
